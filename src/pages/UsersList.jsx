@@ -1,19 +1,19 @@
 import React, { useEffect } from "react";
-import Header from '../components/Header'
-import CardUploadStruk from '../components/CardUploadStruk';
+import Users from "../components/Users";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { getMe } from "../features/authSlice";
+import Header from "../components/Header";
 
-const UploadStruk = () => {
+const UsersList = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();    
+  const navigate = useNavigate();
   const { isError } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(getMe());
   }, [dispatch]);
-  
+
   useEffect(() => {
     if(isError){
       navigate("/login")
@@ -21,13 +21,11 @@ const UploadStruk = () => {
   }, [isError, navigate]);
 
   return (
-    <React.Fragment>
-        <>
-        <Header />
-        <CardUploadStruk />
-        </>
-    </React.Fragment>
+    <div>
+      <Header />
+      <Users />
+    </div>
   );
-}
+};
 
-export default UploadStruk
+export default UsersList;

@@ -1,11 +1,17 @@
 import React from 'react'
 import Header from '../components/Header'
 import LoadingIndicator from '../components/LoadingIndicator';
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from 'react';
 import CardHistory from '../components/CardHistory';
+import { getMe } from "../features/authSlice";
 
 const History = () => {
     const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { isError } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -14,6 +20,16 @@ const History = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    dispatch(getMe());    
+  }, [dispatch]);
+  
+  useEffect(() => {
+    if(isError){
+      navigate("/login")
+    }
+  }, [isError, navigate]);
 
   return (
     <React.Fragment>

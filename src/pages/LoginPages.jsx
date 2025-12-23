@@ -1,0 +1,54 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Toast, ToastContainer } from 'react-bootstrap';
+import Login from '../components/Login';
+
+const LoginPages = () => {
+  const location = useLocation();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastBg, setToastBg] = useState('success');  
+
+  useEffect(() => {
+    if (location.state && location.state.message) {
+      setToastMessage(location.state.message);
+      setShowToast(true);
+
+      if (location.state.message.includes("invalid") || location.state.message.includes("expired")) {
+        setToastBg('danger');
+      }
+    }
+  }, [location]);
+
+  return (
+    <React.Fragment>
+      <Login />
+
+      <ToastContainer position="bottom-end" className="p-3" 
+      style={{ 
+        zIndex: 9999, 
+        position: 'fixed', 
+        bottom: '20px', 
+        left: '50%', 
+        transform: 'translateX(-50%)' 
+        }}>
+        <Toast 
+          onClose={() => setShowToast(false)} 
+          show={showToast} 
+          delay={2000} 
+          autohide 
+          bg={toastBg}
+        >
+          <Toast.Header closeButton={false}>
+            <strong className="me-auto">Notifikasi</strong>
+          </Toast.Header>
+          <Toast.Body className="text-white">
+            {toastMessage}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </React.Fragment>
+  );
+};
+
+export default LoginPages;
