@@ -28,8 +28,15 @@ const Users = () => {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/users`);
       setUser (response.data);
     } catch (err) {
-      console.error('Error fetching users:', err);
-      setError(err.message || "Terjadi kesalahan saat memuat data.");
+      if (err.response) {
+        if (err.response.status === 403) {
+          setError("Akses Ditolak: Hanya admin yang dapat mengakses halaman ini.")
+        } else {
+          setError(err.response.data.msg || "Terjadi kesalahan pada server.")
+        }
+      } else {
+        setError("Tidak dapat terhubung ke server.")
+      }
     } finally {
       setLoading(false);
     }

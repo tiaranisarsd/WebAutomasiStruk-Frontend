@@ -5,6 +5,8 @@ import DataStruk from "./pages/DataStruk";
 import LoginPages from "./pages/LoginPages";
 import NotFoundPage from "./pages/NotFoundPage";
 import UsersList from "./pages/UsersList";
+import AddUser from "./pages/AddUser";
+import EditUser from "./pages/EditUser";
 
 function App() {
   return (
@@ -16,6 +18,8 @@ function App() {
       <Route path="/upload-struk" element={<UploadStruk />}/>
       <Route path="/data-struk" element={<DataStruk /> }/>
       <Route path="/users" element={<UsersList />}/>
+      <Route path="/users/add" element={<AddUser />}/>
+      <Route path="/users/edit/:id" element={<EditUser />}/>
       </Routes>
       </BrowserRouter>
   );

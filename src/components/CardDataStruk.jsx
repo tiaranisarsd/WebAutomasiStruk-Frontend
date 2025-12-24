@@ -15,6 +15,7 @@ const CardDataStruk = () => {
 
   // filter
   const [batchId, setBatchId] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const fetchData = async (p = page) => {
     setIsLoading(true);
@@ -23,13 +24,21 @@ const CardDataStruk = () => {
       params.set("page", String(p));
       params.set("limit", String(limit));
       if (batchId) params.set("batchId", batchId);
+      if (statusFilter) params.set("status", statusFilter);
 
       const res = await fetch(`${API_BASE}/master-transaction?${params.toString()}`, {
         credentials: "include",
       });
       const json = await res.json();
 
-      setRows(json.data || []);
+      const rawData = json.data || [];
+      
+      const sortedData = rawData.sort((a, b) => {
+         return a.id - b.id; 
+      });
+
+      setRows(sortedData);
+
       setTotalPages(json?.meta?.totalPages || 1);
       setPage(json?.meta?.page || p);
     } catch (e) {
@@ -43,7 +52,7 @@ const CardDataStruk = () => {
   useEffect(() => {
     fetchData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [statusFilter]);
 
   const onApplyFilter = (e) => {
     e.preventDefault();
@@ -121,6 +130,23 @@ const CardDataStruk = () => {
                 onChange={(e) => setBatchId(e.target.value)}
               />
             </Form.Group>
+            <Form.Group className="col-md-3">
+              <Form.Label className="fw-bold">Status</Form.Label>
+              <Form.Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="">Semua Status</option>
+                <option value="Kadaluarsa">Kadaluarsa</option>
+                <option value="Sudah dibayar">Sudah dibayar</option>
+                <option value="Dikirim">Dikirim</option>
+                <option value="Dikemas">Dikemas</option>
+                <option value="Barang sudah diterima">Barang sudah diterima</option>
+                <option value="Pemesanan dibatalkan">Pemesanan dibatalkan</option>
+                <option value="Selesai / Berhasil">Selesai/Berhasil</option>
+
+              </Form.Select>
+            </Form.Group>
 
             <div className="col-md-6 d-flex gap-2">
               <Button type="submit" disabled={isLoading}>
@@ -133,6 +159,7 @@ const CardDataStruk = () => {
                 disabled={isLoading}
                 onClick={() => {
                   setBatchId("");
+                  setStatusFilter("");
                   setTimeout(() => fetchData(1), 0);
                 }}
               >
@@ -157,7 +184,7 @@ const CardDataStruk = () => {
               <span>Loading data...</span>
             </div>
           ) : (
-            <Table striped bordered hover responsive>
+            <Table striped bordered hover responsive className="text-center">
               <thead>
                 <tr>
                   <th>ID</th>

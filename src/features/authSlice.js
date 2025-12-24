@@ -22,6 +22,16 @@ axios.interceptors.request.use(
     }
 );
 
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 403) {
+      alert("Akses ditolak oleh sistem.");
+    }
+    return Promise.reject(error);
+  }
+)
+
 export const LoginUser = createAsyncThunk(
     "auth/LoginUser",
     async (userData, thunkAPI) => {

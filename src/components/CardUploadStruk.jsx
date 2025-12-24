@@ -95,7 +95,7 @@ const CardUploadStruk = () => {
                         animation="border"
                         size="sm"
                         className="me-1 align-middle"
-                        style={{ width: "16px", height: "16px" }}
+                        style={{ width: "12px", height: "12px" }}
                       />
                       <span>Loading...</span>
                     </>
