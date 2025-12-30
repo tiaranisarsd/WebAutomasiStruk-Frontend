@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Container, Table, Button, Alert, Toast, ToastContainer, Modal } from 'react-bootstrap';
 import axios from "axios";
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaTrash } from 'react-icons/fa';
 import LoadingIndicator from './LoadingIndicator';
 
 const CardHistory = () => {
@@ -15,18 +14,16 @@ const CardHistory = () => {
   const [toastVariant, setToastVariant] = useState('success');
   const [historyToDelete, setHistoryAdminToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showMediaModal, setShowMediaModal] = useState(false); 
-  const [selectedMedia, setSelectedMedia] = useState({ url: '', isVideo: false });
 
-  // useEffect(() => {
-  //   getHistoryAdmin();
-  // }, []);
+  useEffect(() => {
+    getHistoryAdmin();
+  }, []);
 
   const getHistoryAdmin = async () => {
     setLoading(true);
-    // setError(null);
+    setError(null);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/history`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/master-transaction-history`);
       setHistoryAdmin(response.data);
     } catch (err) {
       console.error('Error fetching history:', err);
@@ -44,7 +41,7 @@ const CardHistory = () => {
   const confirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/history/${historyToDelete}`);
+      await axios.delete(`${process.env.REACT_APP_API_URL}/master-transaction-history/${historyToDelete}`);
       setShowDeleteModal(false);
       setToastMessage('History berhasil dihapus!');
       setToastVariant('success');
@@ -60,17 +57,19 @@ const CardHistory = () => {
     }
   };
 
-  const handleMediaClick = (mediaUrl) => {
-    const isVideo = mediaUrl.endsWith('.mp4') || mediaUrl.endsWith('.webm') || mediaUrl.endsWith('.mov');
-    const fullUrl = `${process.env.REACT_APP_API_URL}${mediaUrl}`;
-    setSelectedMedia({ url: fullUrl, isVideo });
-    setShowMediaModal(true);
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const options = {
+      day: 'numeric',
+      month: 'long',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
   };
 
-  const handleCloseMediaModal = () => {
-    setShowMediaModal(false);
-    setSelectedMedia({ url: '', isVideo: false });
-  };
 
   return (
     <Container className="p-3">
@@ -78,7 +77,7 @@ const CardHistory = () => {
         <Toast 
           onClose={() => setShowToast(false)} 
           show={showToast} 
-          delay={3000} 
+          delay={2000} 
           autohide 
           bg={toastVariant}
         >
@@ -115,40 +114,26 @@ const CardHistory = () => {
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showMediaModal} onHide={handleCloseMediaModal} centered size="lg">
-        <Modal.Header closeButton>
-          <Modal.Title className="text-blue">Dokumen</Modal.Title>
-        </Modal.Header>
-        <Modal.Body className="text-center">
-          {selectedMedia.url ? (
-            selectedMedia.isVideo ? (
-              <video controls className="w-100" style={{ maxHeight: '70vh' }} onError={() => alert('Gagal memuat video.')}>
-                <source src={selectedMedia.url} type="video/mp4" />
-                Browser Anda tidak mendukung tag video.
-              </video>
-            ) : (
-              <img
-                src={selectedMedia.url}
-                alt="History"
-                className="img-fluid"
-                style={{ maxHeight: '70vh', width: '100%', objectFit: 'contain' }}
-                onError={() => alert('Gagal memuat dokumen.')}
-              />
-            )
-          ) : (
-            <Alert variant="warning">Tidak ada media yang tersedia untuk ditampilkan.</Alert>
-          )}
-        </Modal.Body>
-      </Modal>
-
       <h2 className="mt-5 pt-5 text-blue fw-bold">Riwayat</h2>
       <div className="mt-3">
-          <Table striped bordered hover responsive className='text-center'>
-            <thead className='custom-table'>
+        {loading ? (
+           <div className="d-flex justify-content-center my-5">
+            <LoadingIndicator animation="border" role="status" style={{ width: "5rem", height: "5rem" }}>
+              <span className="visually-hidden">Loading...</span>
+            </LoadingIndicator>
+          </div>
+          ) : error ? (
+          <Alert variant="danger" className="text-center">{error}</Alert>
+        ) : (
+        <Table striped bordered hover responsive className='text-center'>
+          <thead className='custom-table'>
               <tr>
                 <th>No</th>
-                <th>Tanggal & Waktu</th>
-                <th>Nama Invoice</th>
+                <th>Terakhir di Print</th>
+                <th>Reference No</th>
+                <th>Customer</th>
+                <th>Produk</th>
+                <th>Qty</th>
                 <th>Tindakan</th>
               </tr>
             </thead>
@@ -156,15 +141,12 @@ const CardHistory = () => {
               {history.map((history, index) => (
                 <tr key={history.id}>
                   <td>{index + 1}</td>
-                  <td>{history.tanggalWaktu}</td>
-                  <td>{history.namaInvoice}</td>
+                  <td>{formatDate(history.updated_at)}</td>
+                  <td>{history.reference_no}</td>
+                  <td>{history.customer_name}</td>
+                  <td>{history.product_name}</td>
+                  <td>{history.quantity}</td>
                   <td>
-                        <Link
-                          to={`/history/edit/${history.id}`}
-                          className="btn btn-sm btn-primary me-2 text-white"
-                        >
-                          <FaEdit />
-                        </Link>
                         <Button
                           variant="danger"
                           size="sm"
@@ -176,8 +158,17 @@ const CardHistory = () => {
                   </td>
                 </tr>
               ))}
+
+              {history.length === 0 && (
+                <tr>
+                  <td colSpan={12} className='text-center'>
+                    Data Kosong
+                  </td>
+                </tr>
+              )}
             </tbody>
           </Table>
+          )}
       </div>
     </Container>
   );

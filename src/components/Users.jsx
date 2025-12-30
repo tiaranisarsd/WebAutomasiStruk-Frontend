@@ -121,7 +121,7 @@ const Users = () => {
         ) : error ? (
           <Alert variant="danger" className="text-center">{error}</Alert>
         ) : (
-          <Table border={1} bordered responsive className='text-center custom-table'>
+          <Table striped bordered hover responsive className='text-center'>
             <thead className='custom-table'>
               <tr>
                 <th>No</th>

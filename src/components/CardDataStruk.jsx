@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Card, Container, Table, Form, Button } from "react-bootstrap";
 import LoadingIndicator from "./LoadingIndicator";
+import {useSelector} from "react-redux";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5001";
 
@@ -17,7 +20,11 @@ const CardDataStruk = () => {
   const [batchId, setBatchId] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
+  const { user, isError } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
   const fetchData = async (p = page) => {
+
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
@@ -26,24 +33,24 @@ const CardDataStruk = () => {
       if (batchId) params.set("batchId", batchId);
       if (statusFilter) params.set("status", statusFilter);
 
-      const res = await fetch(`${API_BASE}/master-transaction?${params.toString()}`, {
-        credentials: "include",
-      });
-      const json = await res.json();
+      const response = await axios.get(`${API_BASE}/master-transaction?${params.toString()}`);
 
-      const rawData = json.data || [];
+      const json = response.data;
+
+      const rawData = Array.isArray(json) ? json : (json.data || []);
       
-      const sortedData = rawData.sort((a, b) => {
-         return a.id - b.id; 
-      });
+      const sortedData = rawData.sort((a, b) => a.id = b.id);
 
       setRows(sortedData);
-
       setTotalPages(json?.meta?.totalPages || 1);
       setPage(json?.meta?.page || p);
     } catch (e) {
       console.error(e);
-      alert("Gagal load Data Struk. Cek console & backend.");
+      if (e.response && e.response.status === 401) {
+        navigate("/")
+      } else {
+        alert("Gagal load Data Struk. Cek console & backend");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -97,14 +104,8 @@ const CardDataStruk = () => {
       });
 
       const ids = rows.map((x) => x.id);
-
-      await fetch(`${API_BASE}/master-transaction/print-bulk`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ ids }),
-      });
-
+      
+      await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids });
       await fetchData(page);
       alert("Print All (tampil) ditandai sebagai printed.");
     } catch (e) {
@@ -122,7 +123,7 @@ const CardDataStruk = () => {
           {/* FILTER */}
           <Form className="row g-2 align-items-end mb-3" onSubmit={onApplyFilter}>
             <Form.Group className="col-md-3">
-              <Form.Label className="fw-bold">Filter Batch ID (optional)</Form.Label>
+              <Form.Label className="fw-bold text-blue">Filter Batch ID (optional)</Form.Label>
               <Form.Control
                 type="number"
                 placeholder="contoh: 2"
@@ -131,7 +132,7 @@ const CardDataStruk = () => {
               />
             </Form.Group>
             <Form.Group className="col-md-3">
-              <Form.Label className="fw-bold">Status</Form.Label>
+              <Form.Label className="fw-bold text-blue">Status</Form.Label>
               <Form.Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -185,9 +186,8 @@ const CardDataStruk = () => {
             </div>
           ) : (
             <Table striped bordered hover responsive className="text-center">
-              <thead>
+              <thead className="custom-table">
                 <tr>
-                  <th>ID</th>
                   <th>No</th>
                   <th>Reference No</th>
                   <th>Tanggal</th>
@@ -202,12 +202,11 @@ const CardDataStruk = () => {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td>{r.id}</td>
-                    <td>{r.no}</td>
+                {rows.map((r, index) => (
+                  <tr key={`${r.id}-${index}`}>
+                    <td>{index + 1}</td>
                     <td>{r.reference_no}</td>
-                    <td>{String(r.transaction_date || "")}</td>
+                    <td>{r.transaction_date}</td>
                     <td>{r.customer_name}</td>
                     <td>{r.customer_phone}</td>
                     <td>{r.status}</td>
