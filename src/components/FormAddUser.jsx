@@ -60,7 +60,7 @@ const FormAddUser = () => {
     return (
         <Container className='container mt-5'>
             <ToastContainer
-                position="bottom-end"
+                position="top-end"
                 className="p-3"
                 style={{ zIndex: 9999, position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)' }}
             >

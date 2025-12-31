@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Container, Form, Toast, ToastContainer, Table, Modal, Alert } from "react-bootstrap";
 import LoadingIndicator from "./LoadingIndicator";
-import { FaSave, FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaTrash } from "react-icons/fa";
+import { FaSave, FaCheckCircle, FaExclamationTriangle, FaTimesCircle, FaTrash, FaEye } from "react-icons/fa";
 import axios from "axios";
 import { useSelector } from 'react-redux';
+import CsvViewer from "./CsvViewer";
 
 const CardUploadStruk = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,6 +19,8 @@ const CardUploadStruk = () => {
   const [toastBody, setToastBody] = useState(null);
   const [batchToDelete, setBatchToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false); 
+  const [previewUrl, setPreviewUrl] = useState("");
 
   useEffect(() => {
     getBatch();
@@ -48,19 +51,22 @@ const CardUploadStruk = () => {
       try {
         await axios.delete(`${process.env.REACT_APP_API_URL}/upload-file/${batchToDelete}`);
         setShowDeleteModal(false);
-        setShowToast('Batch berhasil dihapus!');
-        setToastVariant('success');
-        setShowToast(true);
+        showNotification('success', 'Berhasil', 'Batch berhasil dihapus!');
         getBatch();
       } catch (err) {
         console.error('Error deleting Batch:', err);
-        setShowToast(err.message || "Terjadi kesalahan saat menghapus data.");
-        setToastVariant('danger');
-        setShowToast(true);
+        showNotification('danger', 'Gagal', err.message || "Terjadi kesalahan saat menghapus data.");
       } finally {
         setIsDeleting(false);
       }
     };
+
+    const handleViewClick = (fileName, e) => {
+    e.preventDefault();
+    const url = `${process.env.REACT_APP_API_URL}/view-file/${fileName}`;
+    setPreviewUrl(url);
+    setShowPreviewModal(true);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
@@ -97,7 +103,7 @@ const handleSubmit = async (e) => {
 
     const isCsv = file.type === "text/csv" || file.name.toLowerCase().endsWith(".csv");
     if (!isCsv) {
-      alert("File harus .csv");
+      showNotification("warning", "Format Salah", "File yang diupload harus berformat .csv!");
       return;
     }
 
@@ -108,10 +114,12 @@ const handleSubmit = async (e) => {
       const formData = new FormData();
       formData.append("file", file);
 
+      const UserId = users && users.id ? String(users.id) : "1";
+
       const res = await fetch("http://localhost:5001/upload-file", {
         method: "POST",
         headers: {
-          "x-user-id": "1" 
+          "x-user-id": UserId
         },
         body: formData,
       });
@@ -120,7 +128,8 @@ const handleSubmit = async (e) => {
 
       if (!res.ok) {
         console.error("Upload error:", result);
-        alert(result?.message || "Upload gagal. Cek console / backend log.");
+        const errorMsg = result?.msg || "Upload gagal. Cek backend.";
+        showNotification("danger", "Gagal Upload", errorMsg);
         return;
       }
 
@@ -160,6 +169,7 @@ const handleSubmit = async (e) => {
         );
       }
 
+      getBatch();
       console.log("UPLOAD RESULT:", result);
       
       setFile(null);
@@ -219,6 +229,25 @@ const handleSubmit = async (e) => {
                       )}
                 </Button>
             </Modal.Footer>
+      </Modal>
+
+      <Modal 
+        show={showPreviewModal} 
+        onHide={() => setShowPreviewModal(false)} 
+        size="xl"
+        centered
+      >
+        <Modal.Header closeButton className="bg-light">
+          <Modal.Title className="fw-bold text-blue">
+             <FaEye className="me-2" /> Preview Data Excel
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="p-0">
+             <CsvViewer apiUrl={previewUrl} />
+        </Modal.Body>
+        <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowPreviewModal(false)}>Tutup</Button>
+        </Modal.Footer>
       </Modal>
 
       <h2 className="mt-5 pt-5 text-blue fw-bold">Upload Struk</h2>
@@ -295,8 +324,19 @@ const handleSubmit = async (e) => {
                   {batch.map((item, index) => (
                     <tr key={item.id}>
                       <td>{item.id}</td>
-                      <td>{item.file_name}</td>
-                      <td>{item.imported_by}</td>
+                      <td>
+                          <a
+                            href="/upload-file"
+                            onClick={(e) => handleViewClick(item.file_name, e)}
+                            className="text-decoration-none fw-bold text-primary"
+                            title="Klik untuk melihat preview data"
+                            style={{ cursor: "pointer" }}
+                          >
+                            <FaEye className="me-1 mb-1" size={12}/> 
+                            {item.file_name}
+                          </a>
+                        </td>
+                      <td>{item.users.username}</td>
                       <td>{formatDate(item.imported_at)}</td>
                       <td>
                         <Button

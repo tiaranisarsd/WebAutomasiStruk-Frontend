@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Container, Table, Form, Button } from "react-bootstrap";
 import LoadingIndicator from "./LoadingIndicator";
-import {useSelector} from "react-redux";
+// import {useSelector} from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -20,7 +20,7 @@ const CardDataStruk = () => {
   const [batchId, setBatchId] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const { user, isError } = useSelector((state) => state.auth);
+  // const { user, isError } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const fetchData = async (p = page) => {
