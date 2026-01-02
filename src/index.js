@@ -6,6 +6,7 @@ import App from './App';
 import './index.css';
 import axios from "axios";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'datatables.net-dt/css/dataTables.dataTables.css';
 
 axios.defaults.withCredentials = true;
 

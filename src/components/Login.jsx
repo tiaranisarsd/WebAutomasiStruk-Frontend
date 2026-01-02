@@ -39,7 +39,7 @@ const Login = () => {
     }, [users, isSuccess, dispatch, navigate]);
 
     return (
-        <div className="login-admin-container d-flex justify-content-center bg-blue align-items-center vh-100">
+        <div className="login-admin-container d-flex justify-content-center bg-custom-gradient align-items-center vh-100">
 
             <Card className="login-card shadow border-0 p-4 m-3 mt-4" style={{ width: "500px" }}>
                 <Card.Body>

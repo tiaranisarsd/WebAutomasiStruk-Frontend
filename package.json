@@ -7,6 +7,8 @@
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
     "cra-template-redux": "2.0.0",
+    "datatables.net-dt": "^2.3.6",
+    "datatables.net-react": "^1.0.1",
     "dotenv": "^17.2.3",
     "papaparse": "^5.5.3",
     "react": "^19.2.3",

@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Alert, Toast, ToastContainer, Modal } from 'react-bootstrap';
 import axios from "axios";
-import { FaTrash } from 'react-icons/fa';
+import { FaUndo } from 'react-icons/fa';
 import LoadingIndicator from './LoadingIndicator';
 
 const CardHistory = () => {
   const [history, setHistoryAdmin] = useState([]);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState('success');
-  const [historyToDelete, setHistoryAdminToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [isProcessing, setisProcessing] = useState(false);
 
   useEffect(() => {
     getHistoryAdmin();
@@ -33,27 +33,27 @@ const CardHistory = () => {
     }
   };
 
-  const handleDeleteClick = (historyId) => {
-    setHistoryAdminToDelete(historyId);
-    setShowDeleteModal(true);
+  const handleUnprintClick = (id) => {
+    setSelectedId(id);
+    setShowModal(true);
   };
 
-  const confirmDelete = async () => {
-    setIsDeleting(true);
+  const confirmUnprint = async () => {
+    setisProcessing(true);
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/master-transaction-history/${historyToDelete}`);
-      setShowDeleteModal(false);
-      setToastMessage('History berhasil dihapus!');
+      await axios.patch(`${process.env.REACT_APP_API_URL}/master-transaction/${selectedId}/unprinted`);
+      setShowModal(false);
+      setToastMessage('Status print dibatalkan. Data kembali ke daftar data struk');
       setToastVariant('success');
       setShowToast(true);
       getHistoryAdmin();
     } catch (err) {
-      console.error('Error deleting history:', err);
-      setToastMessage(err.message || "Terjadi kesalahan saat menghapus data.");
+      console.error('Error:', err);
+      setToastMessage(err.message || "Terjadi kesalahan saat memindahkan data.");
       setToastVariant('danger');
       setShowToast(true);
     } finally {
-      setIsDeleting(false);
+      setisProcessing(false);
     }
   };
 
@@ -90,31 +90,31 @@ const CardHistory = () => {
         </Toast>
       </ToastContainer>
         
-      <Modal className='text-blue' show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+      <Modal className='text-blue' show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header className='bg-light2' closeButton>
           <Modal.Title className='fw-bold h3'>Konfirmasi Hapus</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Apakah Anda yakin ingin menghapus history ini?
+          Apakah Anda yakin ingin membatalkan status print? Data ini akan muncul kembali di menu daftar struk.
         </Modal.Body>
         <Modal.Footer className='border-0 mt-0'>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}> 
+          <Button variant="secondary" onClick={() => setShowModal(false)}> 
             Batal
           </Button>
-          <Button variant="danger" onClick={confirmDelete} disabled={isDeleting}> 
-            {isDeleting ? (
+          <Button variant="warning" onClick={confirmUnprint} disabled={isProcessing}> 
+            {isProcessing ? (
               <>
                 <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 {' '}Loading...
               </>
             ) : (
-              'Hapus'
+              'Ya, Batalkan'
             )}
           </Button>
         </Modal.Footer>
       </Modal>
 
-      <h2 className="mt-5 pt-5 text-blue fw-bold">Riwayat</h2>
+      <h2 className="mt-5 pt-5 text-blue fw-bold">Riwayat Cetak</h2>
       <div className="mt-3">
         {loading ? (
            <div className="d-flex justify-content-center my-5">
@@ -125,7 +125,7 @@ const CardHistory = () => {
           ) : error ? (
           <Alert variant="danger" className="text-center">{error}</Alert>
         ) : (
-        <Table striped bordered hover responsive className='text-center'>
+        <Table  striped bordered hover responsive className='text-center'>
           <thead className='custom-table'>
               <tr>
                 <th>No</th>
@@ -148,12 +148,13 @@ const CardHistory = () => {
                   <td>{history.quantity}</td>
                   <td>
                         <Button
-                          variant="danger"
+                          variant="warning"
                           size="sm"
-                          onClick={() => handleDeleteClick(history.id)}
+                          onClick={() => handleUnprintClick(history.id)}
                           className='me-2 mt-1 mb-lg-1'
+                          title="Batalkan Status Print"
                         >
-                          <FaTrash />
+                          <FaUndo />
                         </Button>
                   </td>
                 </tr>

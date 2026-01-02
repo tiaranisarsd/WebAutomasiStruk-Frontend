@@ -16,6 +16,10 @@ code {
   background-color: #213448;
 }
 
+.bg-custom-gradient{
+  background: linear-gradient(90.21deg, rgba(33, 52, 72) -5.91%, rgba(68, 44, 177, 0.6) 111.58%);
+}
+
 .text-blue{
   color: #213448;
 }

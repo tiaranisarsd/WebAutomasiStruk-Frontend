@@ -39,7 +39,7 @@ const CardDataStruk = () => {
 
       const rawData = Array.isArray(json) ? json : (json.data || []);
       
-      const sortedData = rawData.sort((a, b) => a.id = b.id);
+      const sortedData = [...rawData].sort((a, b) => a.id - b.id);
 
       setRows(sortedData);
       setTotalPages(json?.meta?.totalPages || 1);
@@ -76,15 +76,10 @@ const CardDataStruk = () => {
 
   const handlePrintRow = async (row) => {
     try {
-      // 1) buka halaman print-view (HTML auto print)
-      window.open(`${API_BASE}/master-transaction/${row.id}/print-view`, "_blank", "noopener,noreferrer");
+      const targetId = row.id;
+      window.open(`${API_BASE}/master-transaction/${targetId}/print-view`, "_blank", "noopener,noreferrer");
 
-      // 2) tandai printed (kalau mau lebih aman, bisa pindah ke "After print" event—tapi ini versi simple)
-      await fetch(`${API_BASE}/master-transaction/${row.id}/print`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
+      await axios.patch(`${API_BASE}/master-transaction/${targetId}/print`);
 
       await fetchData(page);
     } catch (e) {
@@ -93,26 +88,28 @@ const CardDataStruk = () => {
     }
   };
 
-  const handlePrintAllVisible = async () => {
-    try {
-      if (!rows.length) return;
-
-      // WARNING: banyak popup bisa diblok browser.
-      // Kalau batch besar, lebih bagus print server-side jadi PDF.
-      rows.forEach((r) => {
-        window.open(`${API_BASE}/master-transaction/${r.id}/print-view`, "_blank", "noopener,noreferrer");
-      });
-
-      const ids = rows.map((x) => x.id);
-      
-      await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids });
-      await fetchData(page);
-      alert("Print All (tampil) ditandai sebagai printed.");
-    } catch (e) {
-      console.error(e);
-      alert("Gagal Print All. Cek console/backend.");
+const handlePrintAllVisible = async () => {
+  try {
+    const ids = rows.map((r) => Number(r.id)).filter(id => !isNaN(id));
+    
+    if (ids.length === 0) {
+      return alert("Tidak ada data untuk diprint");
     }
-  };
+
+    console.log("Mengirim IDs ke backend:", ids); 
+
+    const idString = ids.join(",");
+    window.open(`${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`, "_blank");
+
+    await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids });
+
+    fetchData(page);
+    
+  } catch (e) {
+    console.error("Kesalahan API:", e.response?.data);
+    alert("Gagal update status: " + (e.response?.data?.msg || e.message));
+  }
+};
 
   return (
     <Container className="p-3">
@@ -178,6 +175,21 @@ const CardDataStruk = () => {
             </div>
           </Form>
 
+          {/* PAGINATION */}
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              Page <b>{page}</b> / <b>{totalPages}</b>
+            </div>
+            <div className="d-flex gap-2">
+              <Button variant="outline-primary" onClick={onPrev} disabled={isLoading || page <= 1}>
+                Prev
+              </Button>
+              <Button variant="outline-primary" onClick={onNext} disabled={isLoading || page >= totalPages}>
+                Next
+              </Button>
+            </div>
+          </div>
+
           {/* TABLE */}
           {isLoading ? (
             <div className="d-flex align-items-center gap-2">
@@ -215,8 +227,8 @@ const CardDataStruk = () => {
                     <td>{r.supplier_name}</td>
                     <td>{r.id_batch}</td>
                     <td style={{ width: 120 }}>
-                      <Button size="sm" onClick={() => handlePrintRow(r)}>
-                        Print
+                      <Button size="sm" variant={r.is_print === "1" ? "secondary" : "primary"} onClick={() => handlePrintRow(r)}>
+                        {r.is_print === "1" ? "Re-print" : "Print"}
                       </Button>
                     </td>
                   </tr>
@@ -233,20 +245,6 @@ const CardDataStruk = () => {
             </Table>
           )}
 
-          {/* PAGINATION */}
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div>
-              Page <b>{page}</b> / <b>{totalPages}</b>
-            </div>
-            <div className="d-flex gap-2">
-              <Button variant="outline-primary" onClick={onPrev} disabled={isLoading || page <= 1}>
-                Prev
-              </Button>
-              <Button variant="outline-primary" onClick={onNext} disabled={isLoading || page >= totalPages}>
-                Next
-              </Button>
-            </div>
-          </div>
         </Card.Body>
       </Card>
     </Container>
