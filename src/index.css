@@ -87,3 +87,81 @@ code {
 .excel-table td:first-child {
   border-left: 1px solid #ccc;
 }
+
+/* DATA TABLES */
+
+.dt-paging {
+  display: flex;
+  gap: 5px;
+  margin-top: 20px;
+}
+
+.dt-paging-button {
+  border: 1px solid #dee2e6 !important;
+  background: white !important;
+  color: #12175E !important;
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin: 0 2px;
+}
+
+.dt-paging-button.current {
+  background-color: #b0cbe9 !important;
+  color: #e8f0fe !important;
+  border-color: #b0cbe9 !important;
+  font-weight: bold !important;
+  box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2);
+}
+
+.dt-paging-button.current:hover {
+  color: #e8f0fe !important;
+}
+
+.dt-paging-button:hover:not(.current):not(.disabled) {
+  background-color: #213448 !important;
+  border-color: #213448 !important;
+  color: #e8f0fe !important;
+}
+
+.dt-paging-button.disabled {
+  color: #6c757d !important;
+  cursor: not-allowed;
+  background-color: #f8f9fa !important;
+  border-color: #dee2e6 !important;
+  opacity: 0.6;
+}
+
+.dt-length select {
+  margin-right: 15px !important;
+  padding: 5px 10px !important;
+  border: 1px solid #dee2e6 !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+}
+
+.dt-search {
+  display: flex;
+  align-items: center;
+}
+
+.dt-search label {
+  margin-right: 10px;
+  font-weight: 500;
+  color: #213448;
+}
+
+.dt-search .dt-input {
+  width: 250px !important;
+  border: 1px solid #213448 !important;
+  border-radius: 20px !important;
+  padding: 6px 15px !important;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dt-search .dt-input:focus {
+  border-color: #213448;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}

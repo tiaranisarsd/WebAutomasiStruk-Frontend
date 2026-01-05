@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Table, Button, Alert, Toast, ToastContainer, Modal } from 'react-bootstrap';
+import { Container, Button, Alert, Toast, ToastContainer, Modal } from 'react-bootstrap';
 import axios from "axios";
 import { FaUndo } from 'react-icons/fa';
 import LoadingIndicator from './LoadingIndicator';
+import DataTable from 'datatables.net-react';
+import DT from 'datatables.net-dt';
+
+DataTable.use(DT);
 
 const CardHistory = () => {
   const [history, setHistoryAdmin] = useState([]);
@@ -125,9 +129,22 @@ const CardHistory = () => {
           ) : error ? (
           <Alert variant="danger" className="text-center">{error}</Alert>
         ) : (
-        <Table  striped bordered hover responsive className='text-center'>
-          <thead className='custom-table'>
-              <tr>
+          <DataTable 
+          options={{
+            responsive: true,
+            pageLength: 25,
+            language: {
+              search: "Search:",
+              lengthMenu: "_MENU_ jumlah data/entri per halaman",
+              zeroRecords: "Data Kosong",
+              info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+              infoEmpty: "Menampilkan 0 sampai 0 dari 0 entri",
+              infoFiltered: "(difilter dari _MAX_ total entri"
+            }
+          }}
+          className='table custom-table table-striped table-bordered align-middle'>
+            <thead>
+              <tr className='text-center'>
                 <th>No</th>
                 <th>Terakhir di Print</th>
                 <th>Reference No</th>
@@ -138,37 +155,28 @@ const CardHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {history.map((history, index) => (
-                <tr key={history.id}>
+              {history.map((item, index) => (
+                <tr className='text-center' key={item.id}>
                   <td>{index + 1}</td>
-                  <td>{formatDate(history.updated_at)}</td>
-                  <td>{history.reference_no}</td>
-                  <td>{history.customer_name}</td>
-                  <td>{history.product_name}</td>
-                  <td>{history.quantity}</td>
+                  <td>{formatDate(item.updated_at)}</td>
+                  <td>{item.reference_no}</td>
+                  <td>{item.customer_name}</td>
+                  <td>{item.product_name}</td>
+                  <td>{item.quantity}</td>
                   <td>
-                        <Button
-                          variant="warning"
-                          size="sm"
-                          onClick={() => handleUnprintClick(history.id)}
-                          className='me-2 mt-1 mb-lg-1'
-                          title="Batalkan Status Print"
-                        >
-                          <FaUndo />
-                        </Button>
+                    <Button
+                    variant='outline-warning'
+                    size='sm'
+                    className='rounded-circle shadow-sm'
+                    onClick={() => handleUnprintClick(item.id)}
+                    >
+                      <FaUndo />
+                    </Button>
                   </td>
                 </tr>
               ))}
-
-              {history.length === 0 && (
-                <tr>
-                  <td colSpan={12} className='text-center'>
-                    Data Kosong
-                  </td>
-                </tr>
-              )}
             </tbody>
-          </Table>
+          </DataTable>
           )}
       </div>
     </Container>
