@@ -165,3 +165,28 @@ code {
   border-color: #213448;
   box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
+
+/* login */
+
+.login-split-card {
+  border-radius: 40px;
+  overflow: hidden;
+  display: flex;
+  padding: 0 !important;
+  background: #fff;
+}
+
+.login-left-panel img {
+  object-position: center;
+  object-fit: contain;
+  width: 100%;
+}
+
+.custom-input {
+  border-radius: 20px !important;
+  padding: 12px 20px !important;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd !important;
+}
+
+

@@ -105,9 +105,9 @@ const Users = () => {
         </Modal.Footer>
       </Modal>
 
-      <h2 className="mt-5 pt-5 text-blue fw-bold">Daftar Akun</h2>
+      <h2 className="mt-5 pt-5 text-blue fw-bold">Data Pengguna</h2>
       {users && users.role === "admin" && ( 
-        <Link style={{ border: 'none' }} to="/users/add" className="btn btn-primary btn-hover text-white mt-2">
+        <Link style={{ border: 'none' }} to="/users/add" className="btn btn-primary btn-hover text-white my-2">
           <FaPlus /> Tambah Akun
         </Link>
       )}

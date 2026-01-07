@@ -17,20 +17,21 @@ const CardDataStruk = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   // filter
-  const [batchId, setBatchId] = useState("");
+  const [refNo, setRefNo] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+
+  const [selectedIds, setSelectedIds] = useState([]);
 
   // const { user, isError } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const fetchData = async (p = page) => {
-
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
       params.set("page", String(p));
       params.set("limit", String(limit));
-      if (batchId) params.set("batchId", batchId);
+      if (refNo) params.set("referenceNo", refNo);
       if (statusFilter) params.set("status", statusFilter);
 
       const response = await axios.get(`${API_BASE}/master-transaction?${params.toString()}`);
@@ -74,6 +75,23 @@ const CardDataStruk = () => {
     if (page < totalPages) fetchData(page + 1);
   };
 
+  const handleSelectRow = (id) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((item) => item !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  const handleSelectAllVisible = () => {
+    if (selectedIds.length === rows.length) {
+      setSelectedIds([]);
+    } else {
+      const allIds = rows.map((r) => r.id);
+      setSelectedIds(allIds);
+    }
+  };
+
   const handlePrintRow = async (row) => {
     try {
       const targetId = row.id;
@@ -87,6 +105,27 @@ const CardDataStruk = () => {
       alert("Gagal print row. Cek console/backend.");
     }
   };
+
+const handlePrintSelected = async () => {
+  try {
+
+    if (selectedIds.length === 0) {
+      return alert("Silahkan pilih data terlebih dahulu melalu checkbox");
+    }
+
+    const idString = selectedIds.join(",");
+    window.open(`${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`, "_blank");
+
+    await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids: selectedIds });
+
+    setSelectedIds([]);
+    fetchData(page);
+    
+  } catch (e) {
+    console.error("Kesalahan API:", e.response?.data);
+    alert("Gagal update status: " + (e.response?.data?.msg || e.message));
+  }
+};
 
 const handlePrintAllVisible = async () => {
   try {
@@ -113,19 +152,19 @@ const handlePrintAllVisible = async () => {
 
   return (
     <Container className="p-3">
-      <h2 className="mt-5 pt-5 text-blue fw-bold">Data Struk</h2>
+      <h2 className="mt-5 pt-5 text-blue fw-bold">Data Resi</h2>
 
       <Card className="mt-3">
         <Card.Body>
           {/* FILTER */}
           <Form className="row g-2 align-items-end mb-3" onSubmit={onApplyFilter}>
             <Form.Group className="col-md-3">
-              <Form.Label className="fw-bold text-blue">Filter Batch ID (optional)</Form.Label>
+              <Form.Label className="fw-bold text-blue">Filter Reference No</Form.Label>
               <Form.Control
-                type="number"
-                placeholder="contoh: 2"
-                value={batchId}
-                onChange={(e) => setBatchId(e.target.value)}
+                type="text"
+                placeholder="INV251230699999999"
+                value={refNo}
+                onChange={(e) => setRefNo(e.target.value)}
               />
             </Form.Group>
             <Form.Group className="col-md-3">
@@ -156,7 +195,7 @@ const handlePrintAllVisible = async () => {
                 type="button"
                 disabled={isLoading}
                 onClick={() => {
-                  setBatchId("");
+                  setRefNo("");
                   setStatusFilter("");
                   setTimeout(() => fetchData(1), 0);
                 }}
@@ -171,6 +210,13 @@ const handlePrintAllVisible = async () => {
                 onClick={handlePrintAllVisible}
               >
                 Print All (tampil)
+              </Button>
+              <Button
+              variant="success"
+              disabled={selectedIds.length === 0 || isLoading}
+              onClick={handlePrintSelected}
+              >
+                Print Terpilih ({selectedIds.length})
               </Button>
             </div>
           </Form>
@@ -200,6 +246,12 @@ const handlePrintAllVisible = async () => {
             <Table striped bordered hover responsive className="text-center">
               <thead className="custom-table">
                 <tr>
+                  <th>
+                    <Form.Check 
+                    type="checkbox"
+                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    onChange={handleSelectAllVisible} />
+                  </th>
                   <th>No</th>
                   <th>Reference No</th>
                   <th>Tanggal</th>
@@ -216,6 +268,13 @@ const handlePrintAllVisible = async () => {
               <tbody>
                 {rows.map((r, index) => (
                   <tr key={`${r.id}-${index}`}>
+                    <td>
+                      <Form.Check 
+                      type="checkbox"
+                      checked={selectedIds.includes(r.id)}
+                      onChange={() => handleSelectRow(r.id)}
+                      />
+                    </td>
                     <td>{index + 1}</td>
                     <td>{r.reference_no}</td>
                     <td>{r.transaction_date}</td>

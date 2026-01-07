@@ -24,7 +24,7 @@ const LoginPages = () => {
     <React.Fragment>
       <Login />
 
-      <ToastContainer position="top-end" className="p-3" 
+      <ToastContainer position="top-bottom" className="p-3" 
       style={{ 
         zIndex: 9999, 
         position: 'fixed', 

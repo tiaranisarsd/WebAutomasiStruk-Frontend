@@ -6,6 +6,7 @@ import { HiDocumentDownload } from "react-icons/hi";
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate, useLocation } from "react-router-dom";
 import { LogOut } from "../features/authSlice";
+import logo from "../logo-resi.png";
 
 function Header() {
     const dispatch = useDispatch();
@@ -51,8 +52,9 @@ function Header() {
         <>
             <Navbar expand="lg" fixed="top" variant="light" className="navbar nav-underline bg-blue shadow-sm py-1 ">
                 <Container>
-                    <Navbar.Brand href="/">
-                        <h2 className='text-light'> Automasi Struk</h2>
+                    <Navbar.Brand href="/" className='d-flex align-items-center'>
+                    <img src={logo} alt='logoresi' style={{width: "50px"}} className='me-2' />
+                        <h2 className='text-light mb-0'>AutoResi</h2>
                     </Navbar.Brand>
 
                     <Navbar.Toggle aria-controls="offcanvasNavbar" className="d-lg-none border-0 bg-blue">
@@ -79,7 +81,7 @@ function Header() {
                                         className={`text-blue blue-hover d-flex align-items-center ${activeLink === '/users' ? 'active' : ''}`}
                                         href="/users"
                                     >
-                                        <IoPerson className="me-2" /> Users
+                                        <IoPerson className="me-2" /> Pengguna
                                     </Nav.Link>
                                     )}
                                     <Nav.Link
@@ -94,14 +96,14 @@ function Header() {
                                         className={`text-blue d-flex align-items-center ${activeLink === '/upload-struk' ? 'active' : ''}`}
                                         href="/upload-struk"
                                     >
-                                        <HiDocumentDownload className="me-2" /> Upload Struk
+                                        <HiDocumentDownload className="me-2" /> Upload CSV
                                     </Nav.Link>
                                     <Nav.Link
                                         onClick={() => handleNavLinkClick("/data-struk")}
                                         className={`text-blue d-flex align-items-center ${activeLink === '/data-struk' ? 'active' : ''}`}
                                         href="/data-struk"
                                     >
-                                        <FaDatabase className='me-2' /> Data Struk  
+                                        <FaDatabase className='me-2' /> Data Resi  
                                     </Nav.Link> 
                                     <Nav.Link>
                                     <Button onClick={logout} className="button btn-danger">
@@ -123,7 +125,7 @@ function Header() {
                                     className={`text-white blue-hover d-flex align-items-center me-3 ${activeLink === '/users' ? 'active' : ''}`}
                                     href="/users"
                                 >
-                                <IoPerson className="me-2" /> Users
+                                <IoPerson className="me-2" /> Pengguna
                                 </Nav.Link>
                                 )}
                                  <Nav.Link
@@ -138,14 +140,14 @@ function Header() {
                                     className={`text-white d-flex align-items-center me-3 ${activeLink === '/upload-struk' ? 'active' : ''}`}
                                     href="/upload-struk"
                                 >
-                                    <HiDocumentDownload className="me-2" /> Upload Struk
+                                    <HiDocumentDownload className="me-2" /> Upload CSV
                                 </Nav.Link>
                                 <Nav.Link
                                     onClick={() => handleNavLinkClick("/data-struk")}
                                     className={`text-white d-flex align-items-center me-3 ${activeLink === '/data-struk' ? 'active' : ""}`}
                                     href="/data-struk"
                                     >
-                                        <FaDatabase className="me-2" /> Data Struk
+                                        <FaDatabase className="me-2" /> Data Resi
                                 </Nav.Link>
                                 <Nav.Link>
                                     <Button onClick={logout} className="button btn-danger">

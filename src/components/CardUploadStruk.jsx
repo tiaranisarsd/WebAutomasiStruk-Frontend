@@ -250,7 +250,7 @@ const handleSubmit = async (e) => {
         </Modal.Footer>
       </Modal>
 
-      <h2 className="mt-5 pt-5 text-blue fw-bold">Upload Struk</h2>
+      <h2 className="mt-5 pt-5 text-blue fw-bold">Upload File CSV</h2>
       <div className="mt-3">
         <Card className="custom-table">
           <Card.Body>
