@@ -256,7 +256,6 @@ const handleSubmit = async (e) => {
           <Card.Body>
             <Form className="row text-blue" onSubmit={handleSubmit}>
               <Form.Group>
-                <Form.Label className="fw-bold col-12">Upload Struk</Form.Label>
                 <Form.Control
                   type="file"
                   accept=".csv"
@@ -304,7 +303,7 @@ const handleSubmit = async (e) => {
           ) : error ? (
           <Alert variant="danger" className="text-center">{error}</Alert>
         ) : (
-        <div className="pt-4">
+        <div className="pt-3">
           <hr></hr>
           {users?.role === "admin" && (
             <>

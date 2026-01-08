@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, Container, Table, Form, Button } from "react-bootstrap";
 import LoadingIndicator from "./LoadingIndicator";
-// import {useSelector} from "react-redux";
+import { FaPrint } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -22,7 +22,6 @@ const CardDataStruk = () => {
 
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // const { user, isError } = useSelector((state) => state.auth);
   const navigate = useNavigate();
 
   const fetchData = async (p = page) => {
@@ -185,7 +184,7 @@ const handlePrintAllVisible = async () => {
               </Form.Select>
             </Form.Group>
 
-            <div className="col-md-6 d-flex gap-2">
+            <div className="col-md-6 d-flex gap-1">
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Loading..." : "Apply"}
               </Button>
@@ -262,7 +261,7 @@ const handlePrintAllVisible = async () => {
                   <th>Qty</th>
                   <th>Supplier</th>
                   <th>Batch</th>
-                  <th>Action</th>
+                  <th className="px-5">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -285,9 +284,9 @@ const handlePrintAllVisible = async () => {
                     <td>{r.quantity}</td>
                     <td>{r.supplier_name}</td>
                     <td>{r.id_batch}</td>
-                    <td style={{ width: 120 }}>
-                      <Button size="sm" variant={r.is_print === "1" ? "secondary" : "primary"} onClick={() => handlePrintRow(r)}>
-                        {r.is_print === "1" ? "Re-print" : "Print"}
+                    <td>
+                      <Button size="sm" className="w-75" variant={r.is_print === "1" ? "secondary" : "primary"} onClick={() => handlePrintRow(r)}>
+                        <FaPrint className="me-2" />{r.is_print === "1" ? "Re-print" : "Print"}
                       </Button>
                     </td>
                   </tr>

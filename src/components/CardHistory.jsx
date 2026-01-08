@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Button, Alert, Toast, ToastContainer, Modal } from 'react-bootstrap';
+import { Container, Button, Alert, Toast, ToastContainer, Modal, Card } from 'react-bootstrap';
 import axios from "axios";
 import { FaUndo } from 'react-icons/fa';
 import LoadingIndicator from './LoadingIndicator';
@@ -119,7 +119,8 @@ const CardHistory = () => {
       </Modal>
 
       <h2 className="mt-5 pt-5 text-blue fw-bold">Riwayat Cetak</h2>
-      <div className="mt-3">
+      <Card className="mt-3">
+        <Card.Body>
         {loading ? (
            <div className="d-flex justify-content-center my-5">
             <LoadingIndicator animation="border" role="status" style={{ width: "5rem", height: "5rem" }}>
@@ -129,9 +130,11 @@ const CardHistory = () => {
           ) : error ? (
           <Alert variant="danger" className="text-center">{error}</Alert>
         ) : (
+          <div className='table-responsive'>
           <DataTable 
           options={{
             responsive: true,
+            autoWidth: false,
             pageLength: 25,
             language: {
               search: "Search:",
@@ -142,7 +145,7 @@ const CardHistory = () => {
               infoFiltered: "(difilter dari _MAX_ total entri"
             }
           }}
-          className='table custom-table table-striped table-bordered align-middle'>
+          className='table custom-table table-striped table-bordered align-middle w-100'>
             <thead>
               <tr className='text-center'>
                 <th>No</th>
@@ -177,8 +180,10 @@ const CardHistory = () => {
               ))}
             </tbody>
           </DataTable>
+          </div>
           )}
-      </div>
+          </Card.Body>
+      </Card>
     </Container>
   );
 };

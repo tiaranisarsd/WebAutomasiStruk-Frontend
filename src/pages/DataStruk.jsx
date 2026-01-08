@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import CardDataStruk from "../components/CardDataStruk";
 import { getMe } from "../features/authSlice";
+import ScrollButton from "../components/ScrollButton";
 
 const DataStruk = () => {
   const dispatch = useDispatch();
@@ -24,6 +25,7 @@ const DataStruk = () => {
     <div>
       <Header />
       <CardDataStruk />
+      <ScrollButton />
     </div>
   );
 };
