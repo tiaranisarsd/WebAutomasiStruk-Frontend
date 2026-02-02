@@ -7,6 +7,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import UsersList from "./pages/UsersList";
 import AddUser from "./pages/AddUser";
 import EditUser from "./pages/EditUser";
+import EditDataStruk from "./pages/EditDataStruk";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
       <Route path="/users" element={<UsersList />}/>
       <Route path="/users/add" element={<AddUser />}/>
       <Route path="/users/edit/:id" element={<EditUser />}/>
+      <Route path="/data-struk/edit/:id" element={<EditDataStruk />}/>
       </Routes>
       </BrowserRouter>
   );

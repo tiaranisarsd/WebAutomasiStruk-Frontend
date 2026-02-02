@@ -1,15 +1,38 @@
 import React, { useEffect, useState } from "react";
-import { Card, Container, Table, Form, Button } from "react-bootstrap";
+import {
+  Card,
+  Container,
+  Table,
+  Form,
+  Button,
+  Modal,
+  Toast,
+  ToastContainer,
+} from "react-bootstrap";
 import LoadingIndicator from "./LoadingIndicator";
-import { FaPrint } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import {
+  FaCheckCircle,
+  FaExclamationTriangle,
+  FaTimesCircle,
+  FaTrash,
+  FaPrint,
+  FaEdit,
+} from "react-icons/fa";
 
 const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5001";
 
 const CardDataStruk = () => {
   const [rows, setRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [dataToDelete, setDataToDelete] = useState(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastVariant, setToastVariant] = useState("success");
+  const [toastHeader, setToastHeader] = useState("");
+  const [toastBody, setToastBody] = useState(null);
 
   // pagination
   const [page, setPage] = useState(1);
@@ -19,6 +42,7 @@ const CardDataStruk = () => {
   // filter
   const [refNo, setRefNo] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [batchFilter, setBatchFilter] = useState("");
 
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -32,13 +56,16 @@ const CardDataStruk = () => {
       params.set("limit", String(limit));
       if (refNo) params.set("referenceNo", refNo);
       if (statusFilter) params.set("status", statusFilter);
+      if (batchFilter)  params.set("idBatch", batchFilter);
 
-      const response = await axios.get(`${API_BASE}/master-transaction?${params.toString()}`);
+      const response = await axios.get(
+        `${API_BASE}/master-transaction?${params.toString()}`,
+      );
 
       const json = response.data;
 
-      const rawData = Array.isArray(json) ? json : (json.data || []);
-      
+      const rawData = Array.isArray(json) ? json : json.data || [];
+
       const sortedData = [...rawData].sort((a, b) => a.id - b.id);
 
       setRows(sortedData);
@@ -47,7 +74,7 @@ const CardDataStruk = () => {
     } catch (e) {
       console.error(e);
       if (e.response && e.response.status === 401) {
-        navigate("/")
+        navigate("/");
       } else {
         alert("Gagal load Data Struk. Cek console & backend");
       }
@@ -59,7 +86,7 @@ const CardDataStruk = () => {
   useEffect(() => {
     fetchData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter]);
+  }, [statusFilter, batchFilter]);
 
   const onApplyFilter = (e) => {
     e.preventDefault();
@@ -94,7 +121,11 @@ const CardDataStruk = () => {
   const handlePrintRow = async (row) => {
     try {
       const targetId = row.id;
-      window.open(`${API_BASE}/master-transaction/${targetId}/print-view`, "_blank", "noopener,noreferrer");
+      window.open(
+        `${API_BASE}/master-transaction/${targetId}/print-view`,
+        "_blank",
+        "noopener,noreferrer",
+      );
 
       await axios.patch(`${API_BASE}/master-transaction/${targetId}/print`);
 
@@ -105,60 +136,176 @@ const CardDataStruk = () => {
     }
   };
 
-const handlePrintSelected = async () => {
-  try {
+  const handlePrintSelected = async () => {
+    try {
+      if (selectedIds.length === 0) {
+        return alert("Silahkan pilih data terlebih dahulu melalu checkbox");
+      }
 
-    if (selectedIds.length === 0) {
-      return alert("Silahkan pilih data terlebih dahulu melalu checkbox");
+      const idString = selectedIds.join(",");
+      window.open(
+        `${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`,
+        "_blank",
+      );
+
+      await axios.patch(`${API_BASE}/master-transaction/print-bulk`, {
+        ids: selectedIds,
+      });
+
+      setSelectedIds([]);
+      fetchData(page);
+    } catch (e) {
+      console.error("Kesalahan API:", e.response?.data);
+      alert("Gagal update status: " + (e.response?.data?.msg || e.message));
     }
+  };
 
-    const idString = selectedIds.join(",");
-    window.open(`${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`, "_blank");
+  const handlePrintAllVisible = async () => {
+    try {
+      const ids = rows.map((r) => Number(r.id)).filter((id) => !isNaN(id));
 
-    await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids: selectedIds });
+      if (ids.length === 0) {
+        return alert("Tidak ada data untuk diprint");
+      }
 
-    setSelectedIds([]);
-    fetchData(page);
-    
-  } catch (e) {
-    console.error("Kesalahan API:", e.response?.data);
-    alert("Gagal update status: " + (e.response?.data?.msg || e.message));
-  }
-};
+      console.log("Mengirim IDs ke backend:", ids);
 
-const handlePrintAllVisible = async () => {
-  try {
-    const ids = rows.map((r) => Number(r.id)).filter(id => !isNaN(id));
-    
-    if (ids.length === 0) {
-      return alert("Tidak ada data untuk diprint");
+      const idString = ids.join(",");
+      window.open(
+        `${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`,
+        "_blank",
+      );
+
+      await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids });
+
+      fetchData(page);
+    } catch (e) {
+      console.error("Kesalahan API:", e.response?.data);
+      alert("Gagal update status: " + (e.response?.data?.msg || e.message));
     }
+  };
 
-    console.log("Mengirim IDs ke backend:", ids); 
+  const showNotification = (variant, header, bodyContent) => {
+    setToastVariant(variant);
+    setToastHeader(header);
+    setToastBody(bodyContent);
+    setShowToast(true);
+  };
 
-    const idString = ids.join(",");
-    window.open(`${API_BASE}/master-transaction/print-bulk-view?ids=${idString}`, "_blank");
+  const handleDeleteClick = (dataId) => {
+    setDataToDelete(dataId);
+    setShowDeleteModal(true);
+  };
 
-    await axios.patch(`${API_BASE}/master-transaction/print-bulk`, { ids });
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await axios.delete(
+        `${process.env.REACT_APP_API_URL}/master-transaction/${dataToDelete}`,
+      );
+      setShowDeleteModal(false);
+      showNotification("success", "Berhasil", "Data berhasil dihapus!");
+      fetchData();
+    } catch (err) {
+      console.error("Error deleting Data:", err);
+      showNotification(
+        "danger",
+        "Gagal",
+        err.message || "Terjadi kesalahan saat menghapus data.",
+      );
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
-    fetchData(page);
-    
-  } catch (e) {
-    console.error("Kesalahan API:", e.response?.data);
-    alert("Gagal update status: " + (e.response?.data?.msg || e.message));
-  }
-};
+  const uniqueBatches = [...new Set(rows.map(item => item.id_batch))].filter(Boolean);
 
   return (
     <Container className="p-3">
+      <ToastContainer
+        position="top-end"
+        className="p-3"
+        style={{ zIndex: 9999, position: "fixed" }}
+      >
+        <Toast
+          onClose={() => setShowToast(false)}
+          show={showToast}
+          delay={8000}
+          autohide
+          bg={toastVariant.toLowerCase()}
+        >
+          <Toast.Header>
+            {toastVariant === "success" && (
+              <FaCheckCircle className="me-2 text-success" />
+            )}
+            {toastVariant === "warning" && (
+              <FaExclamationTriangle className="me-2 text-warning" />
+            )}
+            {toastVariant === "danger" && (
+              <FaTimesCircle className="me-2 text-danger" />
+            )}
+
+            <strong className="me-auto">{toastHeader}</strong>
+            <small>Baru saja</small>
+          </Toast.Header>
+          <Toast.Body
+            className={toastVariant === "light" ? "text-dark" : "bg-white"}
+          >
+            {toastBody}
+          </Toast.Body>
+        </Toast>
+      </ToastContainer>
+      <Modal
+        className="text-blue"
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        centered
+      >
+        <Modal.Header className="bg-light2" closeButton>
+          <Modal.Title className="fw-bold h3">Konfirmasi Hapus</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Apakah Anda yakin ingin menghapus data ini?</Modal.Body>
+        <Modal.Footer className="border-0 mt-0">
+          <Button
+            variant="secondary"
+            onClick={() => setShowDeleteModal(false)}
+            disabled={isDeleting}
+          >
+            Batal
+          </Button>
+          <Button
+            variant="danger"
+            onClick={confirmDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                ></span>{" "}
+                Loading...
+              </>
+            ) : (
+              "Hapus"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <h2 className="mt-5 pt-5 text-blue fw-bold">Data Resi</h2>
 
       <Card className="mt-3">
         <Card.Body>
           {/* FILTER */}
-          <Form className="row g-2 align-items-end mb-3" onSubmit={onApplyFilter}>
+          <Form
+            className="row g-2 align-items-end mb-3"
+            onSubmit={onApplyFilter}
+          >
             <Form.Group className="col-md-3">
-              <Form.Label className="fw-bold text-blue">Filter Reference No</Form.Label>
+              <Form.Label className="fw-bold text-blue">
+                Filter Reference No
+              </Form.Label>
               <Form.Control
                 type="text"
                 placeholder="INV251230699999999"
@@ -169,18 +316,31 @@ const handlePrintAllVisible = async () => {
             <Form.Group className="col-md-3">
               <Form.Label className="fw-bold text-blue">Status</Form.Label>
               <Form.Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="">Semua Status</option>
                 <option value="Kadaluarsa">Kadaluarsa</option>
                 <option value="Sudah dibayar">Sudah dibayar</option>
                 <option value="Dikirim">Dikirim</option>
                 <option value="Dikemas">Dikemas</option>
-                <option value="Barang sudah diterima">Barang sudah diterima</option>
-                <option value="Pemesanan dibatalkan">Pemesanan dibatalkan</option>
+                <option value="Barang sudah diterima">
+                  Barang sudah diterima
+                </option>
+                <option value="Pemesanan dibatalkan">
+                  Pemesanan dibatalkan
+                </option>
                 <option value="Selesai / Berhasil">Selesai/Berhasil</option>
+              </Form.Select>
+            </Form.Group>
 
+            <Form.Group className="col-md-2">
+              <Form.Label className="fw-bold text-blue">Filter Batch</Form.Label>
+              <Form.Select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)}>
+                <option value="">Semua Batch</option>
+                {uniqueBatches.map(b => (
+                  <option key={b} value={b}>Batch {b}</option>
+                ))}
               </Form.Select>
             </Form.Group>
 
@@ -211,9 +371,9 @@ const handlePrintAllVisible = async () => {
                 Print All (tampil)
               </Button>
               <Button
-              variant="success"
-              disabled={selectedIds.length === 0 || isLoading}
-              onClick={handlePrintSelected}
+                variant="success"
+                disabled={selectedIds.length === 0 || isLoading}
+                onClick={handlePrintSelected}
               >
                 Print Terpilih ({selectedIds.length})
               </Button>
@@ -226,10 +386,18 @@ const handlePrintAllVisible = async () => {
               Page <b>{page}</b> / <b>{totalPages}</b>
             </div>
             <div className="d-flex gap-2">
-              <Button variant="outline-primary" onClick={onPrev} disabled={isLoading || page <= 1}>
+              <Button
+                variant="outline-primary"
+                onClick={onPrev}
+                disabled={isLoading || page <= 1}
+              >
                 Prev
               </Button>
-              <Button variant="outline-primary" onClick={onNext} disabled={isLoading || page >= totalPages}>
+              <Button
+                variant="outline-primary"
+                onClick={onNext}
+                disabled={isLoading || page >= totalPages}
+              >
                 Next
               </Button>
             </div>
@@ -246,10 +414,13 @@ const handlePrintAllVisible = async () => {
               <thead className="custom-table">
                 <tr>
                   <th>
-                    <Form.Check 
-                    type="checkbox"
-                    checked={rows.length > 0 && selectedIds.length === rows.length}
-                    onChange={handleSelectAllVisible} />
+                    <Form.Check
+                      type="checkbox"
+                      checked={
+                        rows.length > 0 && selectedIds.length === rows.length
+                      }
+                      onChange={handleSelectAllVisible}
+                    />
                   </th>
                   <th>No</th>
                   <th>Reference No</th>
@@ -268,10 +439,10 @@ const handlePrintAllVisible = async () => {
                 {rows.map((r, index) => (
                   <tr key={`${r.id}-${index}`}>
                     <td>
-                      <Form.Check 
-                      type="checkbox"
-                      checked={selectedIds.includes(r.id)}
-                      onChange={() => handleSelectRow(r.id)}
+                      <Form.Check
+                        type="checkbox"
+                        checked={selectedIds.includes(r.id)}
+                        onChange={() => handleSelectRow(r.id)}
                       />
                     </td>
                     <td>{index + 1}</td>
@@ -285,8 +456,32 @@ const handlePrintAllVisible = async () => {
                     <td>{r.supplier_name}</td>
                     <td>{r.id_batch}</td>
                     <td>
-                      <Button size="sm" className="w-75" variant={r.is_print === "1" ? "secondary" : "primary"} onClick={() => handlePrintRow(r)}>
-                        <FaPrint className="me-2" />{r.is_print === "1" ? "Re-print" : "Print"}
+                      <Button
+                        size="sm"
+                        className="w-75"
+                        variant={r.is_print === "1" ? "secondary" : "primary"}
+                        onClick={() => handlePrintRow(r)}
+                      >
+                        <FaPrint className="me-2" />
+                        {r.is_print === "1" ? "Re-print" : "Print"}
+                      </Button>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        className="w-75 mt-1 text-white"
+                        onClick={() =>
+                          navigate(`/data-struk/edit/${r.id}`)
+                        }
+                      >
+                        <FaEdit color="white" /> Edit
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDeleteClick(r.id)}
+                        className="w-75 mt-1"
+                      >
+                        <FaTrash /> Delete
                       </Button>
                     </td>
                   </tr>
@@ -302,7 +497,6 @@ const handlePrintAllVisible = async () => {
               </tbody>
             </Table>
           )}
-
         </Card.Body>
       </Card>
     </Container>

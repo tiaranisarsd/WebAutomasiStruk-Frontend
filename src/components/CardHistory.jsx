@@ -47,7 +47,7 @@ const CardHistory = () => {
     try {
       await axios.patch(`${process.env.REACT_APP_API_URL}/master-transaction/${selectedId}/unprinted`);
       setShowModal(false);
-      setToastMessage('Status print dibatalkan. Data kembali ke daftar data struk');
+      setToastMessage(' Data berhasil dipulihkan. Data kembali ke daftar data struk');
       setToastVariant('success');
       setShowToast(true);
       getHistoryAdmin();
@@ -77,11 +77,11 @@ const CardHistory = () => {
 
   return (
     <Container className="p-3">
-      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999, position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)' }}>
+      <ToastContainer position="top-end" className="p-3" style={{ zIndex: 9999, position: 'fixed', bottom: '80px', transform: 'translateX(-50%)' }}>
         <Toast 
           onClose={() => setShowToast(false)} 
           show={showToast} 
-          delay={2000} 
+          delay={4000} 
           autohide 
           bg={toastVariant}
         >
@@ -99,7 +99,7 @@ const CardHistory = () => {
           <Modal.Title className='fw-bold h3'>Konfirmasi Hapus</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Apakah Anda yakin ingin membatalkan status print? Data ini akan muncul kembali di menu daftar struk.
+          Apakah Anda yakin ingin mengembalikan data ini? Data ini akan muncul kembali di menu daftar struk.
         </Modal.Body>
         <Modal.Footer className='border-0 mt-0'>
           <Button variant="secondary" onClick={() => setShowModal(false)}> 
@@ -112,7 +112,7 @@ const CardHistory = () => {
                 {' '}Loading...
               </>
             ) : (
-              'Ya, Batalkan'
+              'Ya, Pulihkan'
             )}
           </Button>
         </Modal.Footer>
